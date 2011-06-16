@@ -1,0 +1,33 @@
+{
+    "rewrites" : [
+           {
+               "from": "",
+               "to": "index.html"
+           },
+           {
+               "from": "images/*",
+               "to": "images/*"
+           },
+           {
+               "from": "scripts/*",
+               "to": "scripts/*"
+           },
+           {
+               "from": "skin/*",
+               "to": "skin/*"
+           },
+           {
+               "from": "styles/*",
+               "to": "styles/*"
+           },
+           {
+               "from": "*",
+               "to": "../../*"
+           },
+            {
+                "from" : "*",
+                "to" : "../../*"
+            }
+    ],
+    "createdBy" : "Carsten Madsen"
+}

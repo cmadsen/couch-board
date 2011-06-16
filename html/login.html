@@ -1,0 +1,37 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+	<title>Taskboard: login page</title>
+
+	<link rel="stylesheet" type="text/css" href="styles/login.css" media="screen" />
+	<script src="scripts/jquery.js"></script>
+	<script src="scripts/jquery-ui.js"></script>
+	<script src="scripts/utils.js"></script>
+	<script src="scripts/footer.js"></script>
+	<script src="scripts/couch.js"></script>
+
+
+</head>
+<body>
+	<h1>Taskboard</h1>
+	<div class="minHeightWrapper">
+	<% if flash[:notice] -%>
+	<div id="notice"><%= flash[:notice] %></div>
+	<% end -%>
+	<% form_tag do %>
+	<fieldset>
+	<dl>
+		<dt><label for="login">User name:</label></dt>
+		<dd><%= text_field_tag :login, params[:login] %></dd>
+		<dt><label for="password">Password:</label></dt>
+		<dd><%= password_field_tag :password, params[:password] %></dd>
+	</dl>
+	<%= submit_tag "Login" %>
+	</fieldset>
+	<% end %>
+	</div>
+	<%= render :partial => 'project/footer' %>
+</body>
+</html>
