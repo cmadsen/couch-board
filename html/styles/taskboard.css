@@ -440,7 +440,7 @@
 }
 
     .actions li .changeColor {
-        background-image: url(/images/color_off.png);
+        background-image: url(images/color_off.png);
     }
 
     .actions li .changeColor:hover {
@@ -448,11 +448,11 @@
     }
 
     .actions li .deleteCard {
-        background-image: url(/images/cross_off.png);
+        background-image: url(../images/cross_off.png);
     }
 
     .actions li .deleteCard:hover {
-        background-image: url(/images/cross_on.png);
+        background-image: url(images/cross_on.png);
     }
 
     .actions li .deleteColumn,

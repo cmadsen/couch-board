@@ -1,1 +1,1 @@
-{"couch":{"host":"localhost","port":5984,"db":"couchapp-test"}}
+{"couch":{"host":"localhost","port":5984,"db":"couch-board","username" : "admin", "password" : "admin" }}

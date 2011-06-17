@@ -25,7 +25,7 @@
 
 	<link rel="stylesheet" type="text/css" href="styles/taskboard.css" media="screen" />
 	<link rel="stylesheet" type="text/css" href="styles/print.css" media="print" />
-	<script src="scripts/jquery.js"></script>
+	<script src="scripts/jquery-1.4.2.min.js"></script>
 	<script src="scripts/jquery-ui.min.js"></script>
 	<script src="scripts/jquery.editable.js"></script>
 	<script src="scripts/jquery.colorpicker.js"></script>
@@ -57,20 +57,20 @@
 	</div>
 		<form id="formActions" action="#">
 			<fieldset id="fieldsetAddCards">
-				<a class='actionHideForm' href='#' title='Hide'><img src='/images/hide_off.png' alt='Hide'/></a>
+				<a class='actionHideForm' href='#' title='Hide'><img src='images/hide_off.png' alt='Hide'/></a>
 				<label for="inputAddCards">Type a card title, JIRA issue or paste a filter URL:</label>
 				<input id="inputAddCards" type="text" />
 				<input type="submit" value="Add" />
 				<span>to</span> <select id="selectColumn"><option>Test</option></select>
 			</fieldset>
 			<fieldset id="fieldsetAddColumn">
-				<a class='actionHideForm' href='#' title='Hide'><img src='/images/hide_off.png' alt='Hide'/></a>
+				<a class='actionHideForm' href='#' title='Hide'><img src='images/hide_off.png' alt='Hide'/></a>
 				<label for="inputAddColumn">Type a column name:</label>
 				<input id="inputAddColumn" type="text" />
 				<input type="submit" value="Add" />
 			</fieldset>
 			<fieldset id="fieldsetTags">
-				<a class='actionHideForm' href='#' title='Hide'><img src='/images/hide_off.png' alt='Hide'/></a>
+				<a class='actionHideForm' href='#' title='Hide'><img src='images/hide_off.png' alt='Hide'/></a>
 				<label>Filter cards by tags:</label>
 				<ul id="filterTags"></ul>
 			</fieldset>

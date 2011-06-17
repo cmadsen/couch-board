@@ -25,6 +25,7 @@
 var TASKBOARD = {};
 window.TASKBOARD = TASKBOARD;
 
+
 /*
  * Some taskboard utils
  * =========================================================
@@ -370,13 +371,13 @@ TASKBOARD.builder.buildCardFromJSON = function(card){
 	var actionsUl = "";
 
 	// edit-mode-only
-	if(TASKBOARD.editor){
+//	if(TASKBOARD.editor){
 		actionsUl += $.tag("li", TASKBOARD.builder.actions.deleteCardAction());
 		actionsUl += $.tag("li", TASKBOARD.builder.actions.changeColorAction());
 
 		actionsUl = $.tag("ul", actionsUl, { className : 'actions' });
 		cardLi += actionsUl;
-	}
+//	}
 
 	cardLi = $.tag("li", cardLi, { id : 'card_' + card.id });
 	cardLi = $(cardLi)
@@ -1238,7 +1239,8 @@ TASKBOARD.remote = {
 	},
 	get: {
 		taskboardData: function(id, callback){
-			$.getJSON("/taskboard/get_taskboard/" + id, function(data){
+//"/taskboard/get_taskboard/"+id
+			$.getJSON( "../../taskboard-1", function(data){
 				callback(data);
 				TASKBOARD.remote.loading.stop();
 			});

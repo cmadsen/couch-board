@@ -6,12 +6,25 @@
 	<title>Taskboard: login page</title>
 
 	<link rel="stylesheet" type="text/css" href="styles/login.css" media="screen" />
-	<script src="scripts/jquery.js"></script>
+	<script src="scripts/jquery-1.4.2.min.js"></script>
 	<script src="scripts/jquery-ui.js"></script>
 	<script src="scripts/utils.js"></script>
 	<script src="scripts/footer.js"></script>
-	<script src="scripts/couch.js"></script>
-
+	<script src="scripts/jquery.couch.js"></script>
+	<script src="scripts/couchdb-login-jquery.js"></script>
+	
+	<script type="text/javascript">                                         
+	  $(document).ready(function() {
+	  $("#mylogindiv").couchLogin({
+          loggedIn : function(userCtx) {
+          alert("hello "+userCtx.name);
+          }, 
+          loggedOut : function() {
+          alert("bye bye");
+          }
+	  });
+	  });  
+ </script>  
 
 </head>
 <body>
@@ -33,5 +46,10 @@
 	<% end %>
 	</div>
 	<%= render :partial => 'project/footer' %>
+
+	<div id="mylogindiv"/>
+
+
+
 </body>
 </html>

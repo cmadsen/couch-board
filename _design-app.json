@@ -6,7 +6,7 @@
            },
            {
                "from": "images/*",
-               "to": "images/*"
+               "to": "../images/*"
            },
            {
                "from": "scripts/*",
@@ -26,6 +26,10 @@
            },
             {
                 "from" : "*",
+                "to" : "../../*"
+            },
+            {
+                "from" : "taskboard/get_taskboard/*",
                 "to" : "../../*"
             }
     ],
