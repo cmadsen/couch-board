@@ -33,5 +33,13 @@
                 "to" : "../../*"
             }
     ],
-    "createdBy" : "Carsten Madsen"
+    "createdBy" : "Carsten Madsen",
+    "views": { 
+     	      "taskboards": {
+     	      		      "map": "function(doc) {emit(null, doc);}"
+			      
+			     }
+    }
+
+
 }

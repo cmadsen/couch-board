@@ -13,44 +13,45 @@
 	<script src="scripts/jquery.couch.js"></script>
 	<script src="scripts/couchdb-login-jquery.js"></script>
 	
+	
 	<script type="text/javascript">                                         
 	  $(document).ready(function() {
 	  $("#mylogindiv").couchLogin({
           loggedIn : function(userCtx) {
           //alert("hello "+userCtx.name);
 	  window.location = "taskboard.html";
-
+	  
           }, 
           loggedOut : function() {
           //alert("bye bye");
           }
 	  });
 	  });  
- </script>  
+	</script>  
 
 </head>
 <body>
 	<h1>Taskboard</h1>
 	<div class="minHeightWrapper">
-	<% if flash[:notice] -%>
-	<div id="notice"><%= flash[:notice] %></div>
-	<% end -%>
-	<% form_tag do %>
-	<fieldset>
-	<dl>
-		<dt><label for="login">User name:</label></dt>
-		<dd><%= text_field_tag :login, params[:login] %></dd>
-		<dt><label for="password">Password:</label></dt>
-		<dd><%= password_field_tag :password, params[:password] %></dd>
-	</dl>
-	<%= submit_tag "Login" %>
-	</fieldset>
-	<% end %>
+	<!--% if flash[:notice] -%-->
+	<!--div id="notice"><%= flash[:notice] %></div-->
+	<!--% end -%-->
+	<!--% form_tag do %-->
+	<form action="javascript:$.couch.login({name:$('#login').val(), password:$('#password').val(), success:function() {window.location = 'taskboard.html';}});">
+	  <fieldset>
+	    <dl>
+	      <dt><label for="login">User name:</label></dt>
+	      <dd><input id="login" name="login" type="text" /></dd>
+	      <dt><label for="password">Password:</label></dt>
+	      <dd><input id="password" name="password" type="password" /></dd> 	</dl>
+	    <input name="commit" type="submit" value="Login" />
+	  </fieldset>
+	</form>
 	</div>
-	<%= render :partial => 'project/footer' %>
-
+	<!--%= render :partial => 'project/footer' %-->
+	
 	<div id="mylogindiv"/>
-
+	
 
 
 </body>

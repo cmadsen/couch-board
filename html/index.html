@@ -1,25 +1,11 @@
-<!DOCTYPE html>
-<html>
-<head>
-<title>Choose</title>
-<link rel="stylesheet" type="text/css" href="styles/default.css" media="screen" />
-<script src="scripts/jquery-1.4.2.min.js"></script>
-<script src="scripts/couch.js"></script>
-<script>
-$(function() {
-	$('.huge').text('Trailhead');
-	var db = new CouchDB('couchapp-test');
-        var docs = db.allDocs();
-	$.each(docs.rows, function(i, doc) {
-		$('ul').append('<li>' + doc.id + '</li>');
-	});
-});
-</script>
-</head>
-<body class="crazy">
-  <div class="huge">fds</div>
-  <ul>
-
-  </ul>
-</body>
-</html> 
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <title>New Web Project</title>
+    </head>
+    <body>
+        <h1>New Web Project Page</h1>
+    </body>
+</html>

@@ -24,7 +24,7 @@ h1 {
 	height: 100px;
 	margin: 20px auto 0;
 	text-indent: -9999px;
-	background: url(/images/logo.png) no-repeat scroll 0 0;
+	background: url(../images/logo.png) no-repeat scroll 0 0;
 }
 
 input[type=text] {

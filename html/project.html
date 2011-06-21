@@ -1,0 +1,138 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+    <head>
+        <title>Taskboards</title>
+        <link rel="stylesheet" type="text/css" href="styles/home.css" media="screen" />
+        <link rel="stylesheet" type="text/css" href="styles/print.css" media="print" />
+        <script src="scripts/jquery-1.4.2.min.js">
+        </script>
+        <script src="scripts/jquery-ui.min.js">
+        </script>
+        <script src="scripts/jquery.jeditable.js">
+        </script>
+        <script src="scripts/jquery.colorpicker.js">
+        </script>
+        <script src="scripts/jquery.flot.js">
+        </script>
+        <script src="scripts/jquery.cookie.js">
+        </script>
+        <script src="scripts/showdown.js">
+        </script>
+        <script src="scripts/utils.js">
+        </script>
+        <script src="scripts/home.js">
+        </script>
+        <script src="scripts/footer.js">
+        </script>
+        <script src="scripts/jquery.couch.js">
+        </script>
+        <script src="scripts/couchdb-login-jquery.js">
+        </script>
+        <script type="text/javascript">
+            $(function(){
+                $("#projects").addClass("minHeightWrapper");
+                $.couch.session({
+                    success: function(r){
+                        var userCtx = r.userCtx;
+                        $.couch.db("couch-board").view("app/taskboards", {
+                            success: function(docs){
+                                $.each(docs.rows, function(i, doc){
+                                    $("#taskboards").append("<li> <a href='taskboard.html?" + doc.value._id +"'>" +  doc.value.taskboard.name + "</a></li>");
+                                });
+                            }
+                        });
+                        
+                        if (userCtx.name) {
+                            elem.empty();
+                            elem.append(loggedIn(r));
+                            if (opts.loggedIn) {
+                                opts.loggedIn(userCtx)
+                            }
+                        }
+                        else 
+                            if (userCtx.roles.indexOf("_admin") != -1) {
+                                elem.html(templates.adminParty);
+                            }
+                            else {
+                                elem.html(templates.loggedOut);
+                                if (opts.loggedOut) {
+                                    opts.loggedOut()
+                                }
+                            };
+                                }
+                });
+                
+            });
+        </script>
+    </head>
+    <body id="home">
+        <div id="user_meta">
+            Hello <strong class="user_name" title="You are logged in as 'taskboard' user">taskboard</strong>
+            - <a href="/login/logout" title="Logout from Taskboard app">Logout</a>
+        </div>
+        <h1>Taskboard</h1>
+        <dl id="projects">
+            <dd class="addProject">
+                <form action="/project/add" method="get">
+                    <fieldset>
+                        <label for="project_name">
+                            Add a new project
+                        </label>
+                        <div class="inputs">
+                            <input type="text" id="project_name" name="name" value="Enter some nice name for your new project" /><input type="submit" value="Add"/>
+                        </div>
+                    </fieldset>
+                </form>
+            </dd>
+            <dd class="globalActions">
+                <ul class="actions">
+                    <li>
+                        <a href="#expandAll" class="expand">expand all</a>
+                    </li>
+                    <li>
+                        <a href="#collapseAll" class="collapse">collapse all</a>
+                    </li>
+                </ul>
+            </dd>
+            <dt id="project_1" class="first">
+                <span class="name" title="All taskboards">All taskboards</span>
+                <span class="counter">(1)</span>
+                <ul class="actions">
+                    <li class="actionName">
+                    </li>
+                    <li>
+                        <a href="#" title="Rename this project" rel='rename' class='renameProject'><img src="images/rename.png" alt="Rename this project" /></a>
+                    </li>
+                </ul>
+            </dt>
+            <dd class="taskboards">
+                <ul id="taskboards">
+                    <!-- render :partial => 'taskboard/taskboard', :collection => project.taskboards.sort_by(&:name) -->
+                    <li>
+                        <a href="/taskboard/show/1" title="Open 'NAVICON' taskboard">NAVICON</a>
+                        <ul class="actions">
+                            <li class="actionName">
+                            </li>
+                            <li>
+                                <a href="/taskboard/clone_taskboard/1" class="cloneTaskboard" rel="clone" title="Create a copy of 'NAVICON'"><img src="images/taskboard_clone.png" alt="Create a copy of 'NAVICON'" /></a>
+                            </li>
+                        </ul>
+                    </li>
+                    <li class="addTaskboard">
+                        <form action="/taskboard/add_taskboard" method="get">
+                            <fieldset>
+                                <input type="hidden" name="project_id" value="1"/>
+                                <label for="taskboard_name_1">
+                                    Add a new taskboard to this project
+                                </label>
+                                <div class="inputs">
+                                    <input type="text" id="taskboard_name_1" name="name" value="Enter some nice name for your new taskboard"/><input type="submit" value="Add"/>
+                                </div>
+                            </fieldset>
+                        </form>
+                    </li>
+                </ul>
+            </dd>
+        </dl>
+    </body>
+</html>

@@ -1284,9 +1284,16 @@ TASKBOARD.remote = {
 		    );
 		},
 		addRow : function(){
-			TASKBOARD.remote.callback("/taskboard/add_row",
-							{ taskboard_id : TASKBOARD.id },
-							'addRow');
+//		    TASKBOARD.remote.callback("/taskboard/add_row",
+//							{ taskboard_id : TASKBOARD.id },
+//							'addRow');
+		    newRow = {"position":1,"name":"Brave new row","taskboard_id":1,"id": $.couch.newUUID()};
+		    TASKBOARD.api.addRow(newRow);
+		    TASKBOARD.data.rows.push(newRow);
+		    $.couch.db("couch-board").saveDoc(  
+			TASKBOARD.doc,  
+			{success: function() { alert("Saved ok."); }}  
+		    );
 		},
 		moveCard : function(cardId, columnId, rowId, position){
 //			TASKBOARD.remote.callback("/taskboard/reorder_cards",
@@ -1482,7 +1489,14 @@ TASKBOARD.remote = {
 
 		},
 		updateCardHours : function(cardId, hours, updatedAt, callback){
-			TASKBOARD.remote.callback('/card/update_hours/', { id: cardId, hours_left: hours, updated_at: updatedAt }, callback);
+//			TASKBOARD.remote.callback('/card/update_hours/', { id: cardId, hours_left: hours, updated_at: updatedAt }, callback);
+		    card = $.grep(TASKBOARD.data.cards, function(card, i){return card.id === cardId;})[0];
+		    card.hours_left=hours;
+		    card.hours_left_updated=updatedAt;
+		    $.couch.db("couch-board").saveDoc(  
+			TASKBOARD.doc  
+		    );
+
 		},
 		deleteCard : function(cardId){
 //			TASKBOARD.remote.callback('/taskboard/remove_card/', { id: cardId });
