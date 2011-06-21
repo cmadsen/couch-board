@@ -27,22 +27,46 @@
 	<link rel="stylesheet" type="text/css" href="styles/print.css" media="print" />
 	<script src="scripts/jquery-1.4.2.min.js"></script>
 	<script src="scripts/jquery-ui.min.js"></script>
-	<script src="scripts/jquery.editable.js"></script>
+	<script src="scripts/jquery.jeditable.js"></script>
 	<script src="scripts/jquery.colorpicker.js"></script>
 	<script src="scripts/jquery.flot.js"></script>
 	<script src="scripts/jquery.cookie.js"></script>
-	<script src="scripts/jquery.cookie.js"></script>
+	<script src="scripts/showdown.js"></script>
 	<script src="scripts/utils.js"></script>
 	<script src="scripts/taskboard.js"></script>
 	<script src="scripts/footer.js"></script>
-	<script src="scripts/couch.js"></script>
+	<script src="scripts/jquery.couch.js"></script>
+	<script src="scripts/couchdb-login-jquery.js"></script>
 
+	<script type="text/javascript">                                         
+	  
+	  
+	  $(document).ready(function() {
+	  //$("#taskboard").hide();
+	  $("#mylogindiv").couchLogin({
+          loggedIn : function(userCtx) {
+          alert("hello "+userCtx.name);
+	  $("#user").html('<strong class="user_name" title="You are logged in as taskboard user">'+userCtx.name+'</strong> - <a title="Logout from Taskboard app" href="/login/logout">Logout</a>');
+	  $.extend(TASKBOARD, { id : "empty-board"});
+	  $.extend(TASKBOARD, { editor : userCtx.name});
+	  $("#mylogindiv").hide();
+	  $("#taskboard").show();
+          }, 
+          loggedOut : function() {
+	  window.location = "login.html";
+          //alert("bye bye");
+          }
+	  });
+	  });  
+	</script>  
+
+	
 
 </head>
 <body>
 	<div id="header">
 	<div id="headerBar">
-		<h1><%= link_to "Taskboard", { :controller => "taskboard", :action => "index" }, :title => "Back to taskboards list", :rel => 'home' %></h1>
+	  <h1><a title="Back to taskboards list" rel="home" href="/taskboard">Taskboard</a></h1>
 		<ul id="actions">
 			<!--% if session[:editor] -% -->
 			<li><a class="actionAddCards" href="#" title="Add some cards to this taskboard">Add cards</a></li>
@@ -52,7 +76,7 @@
 			<li><a class="actionShowTagSearch" href="#" title="Filter cards by tags">Tags</a></li>
 			<li><a class="actionToggleAll" href="#" title="Zoom cards view">Zoom</a></li>
 			<li><a class="actionShowBurndown" href="#" title="Show burndown chart for this taskboard">Burndown</a></li>
-			<li class="user"><%= render :partial => "login/user_meta" %></li>
+			<li id="user" class="user"></li>
 		</ul>
 	</div>
 		<form id="formActions" action="#">
@@ -80,6 +104,8 @@
 	<ol id="taskboard">
 		<li><!-- just to make it valid --></li>
 	</ol>
+
+	<div id="mylogindiv"/>
 
 </body>
 </html>

@@ -440,11 +440,11 @@
 }
 
     .actions li .changeColor {
-        background-image: url(images/color_off.png);
+        background-image: url(../images/color_off.png);
     }
 
     .actions li .changeColor:hover {
-        background-image: url(/images/color_on.png);
+        background-image: url(../images/color_on.png);
     }
 
     .actions li .deleteCard {
@@ -452,35 +452,35 @@
     }
 
     .actions li .deleteCard:hover {
-        background-image: url(images/cross_on.png);
+        background-image: url(../images/cross_on.png);
     }
 
     .actions li .deleteColumn,
 	.actions li .deleteRow{
-        background-image: url(/images/cross_off.png);
+        background-image: url(../images/cross_off.png);
     }
 
     .actions li .deleteColumn:hover,
 	.actions li .deleteRow:hover {
-        background-image: url(/images/cross_on.png);
+        background-image: url(../images/cross_on.png);
     }
 
     .actions li .cleanColumn,
 	.actions li .cleanRow {
-        background-image: url(/images/remove_cards_off.png);
+        background-image: url(../images/remove_cards_off.png);
     }
 
     .actions li .cleanColumn:hover,
 	.actions li .cleanRow:hover {
-        background-image: url(/images/remove_cards_on.png);
+        background-image: url(../images/remove_cards_on.png);
     }
 
     .big.actions li .changeColor {
-        background-image: url(/images/color_big_off.png);
+        background-image: url(../images/color_big_off.png);
     }
 
     .big.actions li .changeColor:hover {
-        background-image: url(/images/color_big_on.png);
+        background-image: url(../images/color_big_on.png);
     }
 
 /* Form drop animation hack */
@@ -494,7 +494,7 @@
     z-index: 5;
     width: 100%;
     height: 100%;
-    background: #FFFFFF url(/images/loading.gif) no-repeat 50% 50%;
+    background: #FFFFFF url(../images/loading.gif) no-repeat 50% 50%;
     top: 0;
     left: 0;
     opacity: 0.7;
@@ -676,7 +676,7 @@
     position: absolute;
     background-color: #FFFFFF;
     padding-left: 11px;
-    background: url(/images/tip.png) no-repeat;
+    background: url(../images/tip.png) no-repeat;
     z-index: 2000;
 }
 
@@ -689,7 +689,7 @@
 }
 
 #colorPicker .color {
-    background:url(/images/jquery/jquery.colorpicker.gif) no-repeat;
+    background:url(../images/jquery/jquery.colorpicker.gif) no-repeat;
     float:left;
     width:16px;
     height:16px;

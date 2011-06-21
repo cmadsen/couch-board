@@ -17,10 +17,12 @@
 	  $(document).ready(function() {
 	  $("#mylogindiv").couchLogin({
           loggedIn : function(userCtx) {
-          alert("hello "+userCtx.name);
+          //alert("hello "+userCtx.name);
+	  window.location = "taskboard.html";
+
           }, 
           loggedOut : function() {
-          alert("bye bye");
+          //alert("bye bye");
           }
 	  });
 	  });  

@@ -6,7 +6,7 @@
            },
            {
                "from": "images/*",
-               "to": "../images/*"
+               "to": "images/*"
            },
            {
                "from": "scripts/*",

@@ -25,6 +25,7 @@
 var TASKBOARD = {};
 window.TASKBOARD = TASKBOARD;
 
+$.extend(TASKBOARD, { editor : "admin"});
 
 /*
  * Some taskboard utils
@@ -127,7 +128,7 @@ TASKBOARD.builder.options = {
 			var row_id = ui.item.parent().data('data').id;
 			// TODO: check if card column and position changed
 			//	if(position != ui.item.data('position')){
-				TASKBOARD.remote.api.moveCard(ui.item.data("data").id, column_id, row_id, position);
+		        TASKBOARD.remote.api.moveCard(ui.item.data("data").id, column_id, row_id, position);
 			//	}
 		},
 		zIndex : 5
@@ -935,6 +936,7 @@ TASKBOARD.init = function(){
  */ 
 TASKBOARD.loadFromJSON = function(taskboard){
 	var self = TASKBOARD;
+    TASKBOARD.doc = taskboard;
 	taskboard = taskboard.taskboard;
 	self.data = taskboard;
 	var title = $($.tag("span", taskboard.name.escapeHTML(), { className : 'title' }));
@@ -1240,7 +1242,7 @@ TASKBOARD.remote = {
 	get: {
 		taskboardData: function(id, callback){
 //"/taskboard/get_taskboard/"+id
-			$.getJSON( "../../taskboard-1", function(data){
+			$.getJSON( "../../empty-board", function(data){
 				callback(data);
 				TASKBOARD.remote.loading.stop();
 			});
@@ -1259,14 +1261,27 @@ TASKBOARD.remote = {
 	//TODO: change to POST requests
 	api: {
 		addCards : function(name, column_id){
-			TASKBOARD.remote.callback("/taskboard/add_card",
-							{ name : name, taskboard_id : TASKBOARD.id, column_id : column_id },
-							'addCards');
-		},
+//			TASKBOARD.remote.callback("/taskboard/add_card",
+//							{ name : name, taskboard_id : //TASKBOARD.id, column_id : column_id },
+//							'addCards');
+		    newCard = {"hours_left_updated":null,"row_id":1,"position":1,"name":name,"taskboard_id":TASKBOARD.id,"notes":null,"url":null,"id": $.couch.newUUID(),"color":"#F8E065","column_id":column_id,"hours_left":0,"issue_no":null,"tag_list":[]};
+		    TASKBOARD.api.addCards([{card:newCard}]);
+		    TASKBOARD.data.cards.push(newCard);
+		    $.couch.db("couch-board").saveDoc(  
+			TASKBOARD.doc,  
+			{success: function() { alert("Saved ok."); }}  
+		    );
+		}, 
 		addColumn : function(name){
-			TASKBOARD.remote.callback("/taskboard/add_column",
-							{ name : name, taskboard_id : TASKBOARD.id },
-							'addColumn');
+//			TASKBOARD.remote.callback("/taskboard/add_column",
+//						  { name : name, taskboard_id : TASKBOARD.id },  'addColumn');
+		    newColumn = {"position":1,"name": name,"taskboard_id" :TASKBOARD.id ,"id": $.couch.newUUID()}; 
+		    TASKBOARD.api.addColumn(newColumn);
+		    TASKBOARD.data.columns.push(newColumn)
+		    $.couch.db("couch-board").saveDoc(  
+			TASKBOARD.doc,  
+			{success: function() { alert("Saved ok."); }}  
+		    );
 		},
 		addRow : function(){
 			TASKBOARD.remote.callback("/taskboard/add_row",
@@ -1274,51 +1289,221 @@ TASKBOARD.remote = {
 							'addRow');
 		},
 		moveCard : function(cardId, columnId, rowId, position){
-			TASKBOARD.remote.callback("/taskboard/reorder_cards",
-							{ position : position, column_id : columnId, id : cardId, row_id: rowId });
+//			TASKBOARD.remote.callback("/taskboard/reorder_cards",
+//							{ position : position, column_//id : columnId, id : cardId, row_id: rowId });
+
+		    $.couch.db("couch-board").
+			openDoc(TASKBOARD.doc._id,
+				{success: function(doc) { try {
+				    alert("openDoc ok. cardId="+doc.taskboard.name);
+				    
+				    $.each(doc.taskboard.cards, function(i, card){
+					if (card.id === cardId) {
+					    console.log("id=%s row=%s col=%s pos=%s", card.id, rowId, columnId, position);
+					    //TASKBOARD.api.moveCard({card:card});
+					    //alert("colid="+column_id);
+					    card.row_id = rowId;
+					    card.position = position;
+					    card.column_id = columnId;
+					    return false;
+					}
+				    });
+				    
+				    $.couch.db("couch-board").saveDoc(  
+					doc, {success: function() {
+					    TASKBOARD.data=doc.taskboard;
+					    TASKBOARD.doc=doc;
+					    console.log("movero");}});
+				} catch(err) {console.log("%s",err);}
+				}});	
+
+
+//		    $.each(doc.taskboard.cards, function(i, card){
+//			if (card.id === cardId) {
+//			    //TASKBOARD.api.moveCard({card:card});
+//			    card.row_id = rowId;
+//			    card.position = position;
+//			    card.column_id = columnId;
+//			    return false;
+//			}
+//		    });
+
+//		    $.couch.db("couch-board").saveDoc(  
+//			doc,  
+//			{success: function() { alert("Saved ok. cardId="+doc); }}  
+//		    );
 		},
 		moveColumn : function(columnId, position){
-			TASKBOARD.remote.callback("/taskboard/reorder_columns",
-							{ position : position, id : columnId });
+		//	TASKBOARD.remote.callback("/taskboard/reorder_columns",
+		//					{ position : position, id : columnId });
+		    $.each(TASKBOARD.data.columns, function(i, column){
+			if (column.id === columnId) {
+			    console.log("%s moved to col %s", columnId, position);
+			    column.position = position;
+			    return false;
+			}
+		    });
+		    $.couch.db("couch-board").saveDoc(  
+			TASKBOARD.doc,  
+			{success: function() { alert("Saved ok." + columnId + " " + position); }}  
+		    );
 		},
 		renameTaskboard : function(name){
-			TASKBOARD.remote.callback('/taskboard/rename_taskboard', { id : TASKBOARD.id, name : name });
+//			TASKBOARD.remote.callback('/taskboard/rename_taskboard', { id : TASKBOARD.id, name : name });
+		    TASKBOARD.data.name=name;
+		    $.couch.db("couch-board").saveDoc(  
+			TASKBOARD.doc,  
+			{success: function() { alert("Saved ok." +name); }}  
+		    );
+
 		},
 		renameColumn : function(columnId, name){
-			TASKBOARD.remote.callback('/taskboard/rename_column', { id : columnId, name : name });
+//			TASKBOARD.remote.callback('/taskboard/rename_column', { id : columnId, name : name });
+		    $.each(TASKBOARD.data.columns, function(i,column){
+			if (column.id === columnId) {
+			    column.name = name;
+			    return false;
+			}
+		    });
+		    $.couch.db("couch-board").saveDoc(  
+			TASKBOARD.doc,  
+			{success: function() { alert("Saved ok. colName="+name); }}  
+		    );
+
 		},
 		renameCard : function(cardId, name){
-			TASKBOARD.remote.callback('/card/update_name', { id : cardId, name : name });
+			//TASKBOARD.remote.callback('/card/update_name', { id : cardId, name : name });
+		    $.each(TASKBOARD.data.cards, function(i, card){
+			if (card.id === cardId) {
+			    card.name=name;
+			    return false;
+			}
+		    });
+
+		    $.couch.db("couch-board").saveDoc(  
+			TASKBOARD.doc  
+		    );
+
+		    
 		},
 		updateCardNotes : function(cardId, notes){
-			TASKBOARD.remote.callback('/card/update_notes', { id : cardId, notes : notes });
+//			TASKBOARD.remote.callback('/card/update_notes', { id : cardId, notes : notes });
+		    
+		    $.each(TASKBOARD.data.cards, function(i, card){
+			if (card.id === cardId) {
+			    card.notes=notes;
+			    return false;
+			}
+		    });
+
+		    $.couch.db("couch-board").saveDoc(  
+			TASKBOARD.doc  
+		    );
+
 		},
 		addTags : function(cardId, tags){
-			TASKBOARD.remote.callback('/card/add_tag', { id : cardId, tags : tags });
+//			TASKBOARD.remote.callback('/card/add_tag', { id : cardId, tags : tags });
+//		    $.each(TASKBOARD.data.cards, function(i, card){
+//			if (card.id === cardId) {
+//			    console.log("tags=(%s) list=%s", tags,card.tag_list);
+//			    card.tag_list.push(tags);
+//			    console.log("tags=(%s) list=%s", tags,card.tag_list);
+//			    return false;
+//			}
+//		    });
+
+		    $.couch.db("couch-board").saveDoc(  
+			TASKBOARD.doc  
+		    );
+
 		},
 		removeTag : function(cardId, tag){
-			TASKBOARD.remote.callback('/card/remove_tag', { id : cardId, tag : tag });
+			//TASKBOARD.remote.callback('/card/remove_tag', { id : cardId, tag : tag });
+//		    $.each(TASKBOARD.data.cards, function(i, card){
+//			if (card.id === cardId) {
+//			    console.log("%s %s", tag, card.tag_list);
+//			    card.tag_list.splice(tag);
+//			    console.log("%s %s", tag, card.tag_list);
+//			    return false;
+//			}
+//		    });
+
+
+		    $.couch.db("couch-board").saveDoc(  
+			TASKBOARD.doc  
+		    );
+
 		},
 		deleteColumn : function(columnId){
-			TASKBOARD.remote.callback('/taskboard/remove_column/', { id: columnId });
+//			TASKBOARD.remote.callback('/taskboard/remove_column/', { id: columnId });
+
+		    TASKBOARD.data.columns = $.grep(TASKBOARD.data.columns, function(column,i){
+			return column.id != columnId;
+		    });
+
+
+		    $.couch.db("couch-board").saveDoc(  
+			TASKBOARD.doc,  
+			{success: function() { alert("Saved ok. colName="+columnId); }}  
+		    );
+
 		},
 		cleanColumn : function(columnId){
-			TASKBOARD.remote.callback('/taskboard/clean_column/', { id: columnId });
+//			TASKBOARD.remote.callback('/taskboard/clean_column/', { id: columnId });
+
+		    TASKBOARD.data.cards = $.grep(TASKBOARD.data.cards, function(card,i){
+			return card.column_id != columnId;
+		    });
+		    $.couch.db("couch-board").saveDoc(  
+			TASKBOARD.doc  
+		    );
 		},
 		deleteRow : function(rowId){
-			TASKBOARD.remote.callback('/taskboard/remove_row/', { id: rowId });
+//			TASKBOARD.remote.callback('/taskboard/remove_row/', { id: rowId });
+		    TASKBOARD.data.rows = $.grep(TASKBOARD.data.rows, function(row, i){
+			return row.row_id != rowId;
+		    });
+		    $.couch.db("couch-board").saveDoc(  
+			TASKBOARD.doc  
+		    );
+
+
 		},
 		cleanRow : function(rowId){
-			TASKBOARD.remote.callback('/taskboard/clean_row/', { id: rowId });
+//			TASKBOARD.remote.callback('/taskboard/clean_row/', { id: rowId });
+		    TASKBOARD.data.cards = $.grep(TASKBOARD.data.cards, function(card,i){
+			return card.row_id != rowId;
+		    });
+		    $.couch.db("couch-board").saveDoc(  
+			TASKBOARD.doc  
+		    );
+
+
+
 		},
 		updateCardHours : function(cardId, hours, updatedAt, callback){
 			TASKBOARD.remote.callback('/card/update_hours/', { id: cardId, hours_left: hours, updated_at: updatedAt }, callback);
 		},
 		deleteCard : function(cardId){
-			TASKBOARD.remote.callback('/taskboard/remove_card/', { id: cardId });
+//			TASKBOARD.remote.callback('/taskboard/remove_card/', { id: cardId });
+		    TASKBOARD.data.cards = $.grep(TASKBOARD.data.cards, function(card, i){
+			return card.id != cardId;
+		    });
+		    $.couch.db("couch-board").saveDoc(  
+			TASKBOARD.doc  
+		    );
 		},
 		changeCardColor : function(cardId, color){
-			TASKBOARD.remote.callback('/card/change_color/', { id: cardId, color : color });
+//			TASKBOARD.remote.callback('/card/change_color/', { id: cardId, color : color });
+		    card = $.grep(TASKBOARD.data.cards, function(card, i){
+			console.log("%s == %s", card.id, cardId);
+			return card.id == cardId;
+		    })[0];
+		    card.color=color;
+		    TASKBOARD.api.changeCardColor({card:card});
+		    $.couch.db("couch-board").saveDoc(  
+			TASKBOARD.doc  
+		    );
 		}
 	}
 };
@@ -1353,6 +1538,7 @@ $.each(['renameTaskboard',
 /* TODO refactor notifications */
 $(document).ready(function() {
 	$('body').append('<ol id="notifications"></ol>');
+    $db = $.couch.db("couch-db"); 
 });
 
 $.notify = function(msg, options){
