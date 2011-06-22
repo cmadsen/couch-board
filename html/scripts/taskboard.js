@@ -1082,6 +1082,7 @@ TASKBOARD.openColorPicker = function(card, top, left){
 
 $(document).ready(function() {
 	var self = TASKBOARD;
+	$.extend(TASKBOARD, { id : window.location.search.substr(1)});
 	self.init();
 	TASKBOARD.remote.get.taskboardData(self.id, self.loadFromJSON);
 
@@ -1242,7 +1243,9 @@ TASKBOARD.remote = {
 	get: {
 		taskboardData: function(id, callback){
 //"/taskboard/get_taskboard/"+id
-			$.getJSON( "../../empty-board", function(data){
+			//console.log("tboardid=%s %s",id, TASKBOARD.id);
+		 console.log("taskboardData TASKBOARD.id=%s id=%s", TASKBOARD.id, id);
+			$.getJSON( "../../"+TASKBOARD.id, function(data){
 				callback(data);
 				TASKBOARD.remote.loading.stop();
 			});
@@ -1277,7 +1280,8 @@ TASKBOARD.remote = {
 //						  { name : name, taskboard_id : TASKBOARD.id },  'addColumn');
 		    newColumn = {"position":1,"name": name,"taskboard_id" :TASKBOARD.id ,"id": $.couch.newUUID()}; 
 		    TASKBOARD.api.addColumn(newColumn);
-		    TASKBOARD.data.columns.push(newColumn)
+		    $.each(TASKBOARD.data.columns, function(i, column){column.position+=1;});
+		    TASKBOARD.data.columns.push(newColumn);
 		    $.couch.db("couch-board").saveDoc(  
 			TASKBOARD.doc,  
 			{success: function() { alert("Saved ok."); }}  
@@ -1320,7 +1324,7 @@ TASKBOARD.remote = {
 					doc, {success: function() {
 					    TASKBOARD.data=doc.taskboard;
 					    TASKBOARD.doc=doc;
-					    console.log("movero");}});
+					    console.log("move card done");}});
 				} catch(err) {console.log("%s",err);}
 				}});	
 
@@ -1343,13 +1347,22 @@ TASKBOARD.remote = {
 		moveColumn : function(columnId, position){
 		//	TASKBOARD.remote.callback("/taskboard/reorder_columns",
 		//					{ position : position, id : columnId });
+			console.debug("moveColumns id=%s", columnId);
+			col = $.grep(TASKBOARD.data.columns, function(column, i){return column.id === columnId;})[0];
+			oldPosition = col.position;
 		    $.each(TASKBOARD.data.columns, function(i, column){
 			if (column.id === columnId) {
-			    console.log("%s moved to col %s", columnId, position);
+			    console.debug("Moving %s from %s to %s", column.name, column.position, position);
 			    column.position = position;
-			    return false;
-			}
-		    });
+			    //return false;
+			} else if ( column.position >= position && column.position < oldPosition) {
+				console.debug("Moving[>] %s from %s to %s", column.name, column.position, column.position+1);
+				column.position++;
+		    } else if ( column.position <= position && column.position > oldPosition) {
+		    	console.debug("Moving[<] %s from %s to %s", column.name, column.position, column.position-1);
+		    	column.position--;
+		    }
+			});
 		    $.couch.db("couch-board").saveDoc(  
 			TASKBOARD.doc,  
 			{success: function() { alert("Saved ok." + columnId + " " + position); }}  
@@ -1403,9 +1416,7 @@ TASKBOARD.remote = {
 			}
 		    });
 
-		    $.couch.db("couch-board").saveDoc(  
-			TASKBOARD.doc  
-		    );
+		    $.couch.db("couch-board").saveDoc(TASKBOARD.doc);
 
 		},
 		addTags : function(cardId, tags){
@@ -1552,7 +1563,17 @@ $.each(['renameTaskboard',
 /* TODO refactor notifications */
 $(document).ready(function() {
 	$('body').append('<ol id="notifications"></ol>');
-    $db = $.couch.db("couch-db"); 
+    db = $.couch.db("couch-board"); 
+    var changes = db.changes();
+    changes.onChange (function (data) {
+    	$.each(data.results, function(i, change){
+    		//console.log("change.id=%s %s %s", change.id, TASKBOARD.doc._id, TASKBOARD.doc._rev);
+    		if (change.id===TASKBOARD.doc._id && change.changes[0].rev != TASKBOARD.doc._rev) {
+    			TASKBOARD.refresh();
+    		}
+    	});
+    });
+    //console.log("subcribed to changes");
 });
 
 $.notify = function(msg, options){

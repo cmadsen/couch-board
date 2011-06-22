@@ -30,14 +30,71 @@
         </script>
         <script type="text/javascript">
             $(function(){
+            
+            
                 $("#projects").addClass("minHeightWrapper");
+                
+                $('#createtaskboard').submit(function(){
+                    alert('Handler for .submit() called.');
+                    
+                    newBoard = {
+                        "taskboard": {
+                            "rows": [{
+                                "position": 1,
+                                "name": "Brave new row",
+                                "taskboard_id": 1,
+                                "id": $.couch.newUUID()
+                            }],
+                            "name": $("#taskboard_name_1").val(),
+                            "columns": [{
+                                "position": 1,
+                                "name": "Brave new column",
+                                "taskboard_id": 1,
+                                "id": $.couch.newUUID()
+                            }],
+                            "project_id": 1,
+                            "id": $.couch.newUUID(),
+                            "cards": [{
+                                "hours_left_updated": null,
+                                "row_id": 1,
+                                "position": 1,
+                                "name": "My Card",
+                                "taskboard_id": 1,
+                                "notes": null,
+                                "url": null,
+                                "id": 1,
+                                "color": "#F8E065",
+                                "column_id": 1,
+                                "hours_left": 0,
+                                "issue_no": null,
+                                "tag_list": []
+                            }]
+                        }
+                    };
+                    
+                    $.couch.db("couch-board").saveDoc(newBoard, {
+                        success: function(board){
+                            window.location = "taskboard.html"+board.id;
+                        }
+                    });
+                    return false;
+                });
+                
                 $.couch.session({
                     success: function(r){
                         var userCtx = r.userCtx;
                         $.couch.db("couch-board").view("app/taskboards", {
                             success: function(docs){
                                 $.each(docs.rows, function(i, doc){
-                                    $("#taskboards").append("<li> <a href='taskboard.html?" + doc.value._id +"'>" +  doc.value.taskboard.name + "</a></li>");
+                                    $("#taskboards").append("<li> <a href='taskboard.html?" + doc.value._id + "' title='Open" + doc.value.taskboard.name + " taskboard'>" + doc.value.taskboard.name + "</a>" +
+                                    '<ul class="actions">' +
+                                    '<li class="actionName">' +
+                                    "</li>" +
+                                    "<li>" +
+                                    '<a href="/taskboard/clone_taskboard/1" class="cloneTaskboard" rel="clone" title="Create a copy of NAVICON"><img src="images/taskboard_clone.png" alt="Create a copy of NAVICON" /></a>' +
+                                    "<li>" +
+                                    "</ul>" +
+                                    "</li>");
                                 });
                             }
                         });
@@ -72,58 +129,62 @@
         </div>
         <h1>Taskboard</h1>
         <dl id="projects">
+            <!--
             <dd class="addProject">
-                <form action="/project/add" method="get">
-                    <fieldset>
-                        <label for="project_name">
-                            Add a new project
-                        </label>
-                        <div class="inputs">
-                            <input type="text" id="project_name" name="name" value="Enter some nice name for your new project" /><input type="submit" value="Add"/>
-                        </div>
-                    </fieldset>
-                </form>
+            <form action="/project/add" method="get">
+            <fieldset>
+            <label for="project_name">
+            Add a new project
+            </label>
+            <div class="inputs">
+            <input type="text" id="project_name" name="name" value="Enter some nice name for your new project" /><input type="submit" value="Add"/>
+            </div>
+            </fieldset>
+            </form>
             </dd>
             <dd class="globalActions">
-                <ul class="actions">
-                    <li>
-                        <a href="#expandAll" class="expand">expand all</a>
-                    </li>
-                    <li>
-                        <a href="#collapseAll" class="collapse">collapse all</a>
-                    </li>
-                </ul>
+            <ul class="actions">
+            <li>
+            <a href="#expandAll" class="expand">expand all</a>
+            </li>
+            <li>
+            <a href="#collapseAll" class="collapse">collapse all</a>
+            </li>
+            </ul>
             </dd>
             <dt id="project_1" class="first">
-                <span class="name" title="All taskboards">All taskboards</span>
-                <span class="counter">(1)</span>
-                <ul class="actions">
-                    <li class="actionName">
-                    </li>
-                    <li>
-                        <a href="#" title="Rename this project" rel='rename' class='renameProject'><img src="images/rename.png" alt="Rename this project" /></a>
-                    </li>
-                </ul>
+            <span class="name" title="All taskboards">All taskboards</span>
+            <span class="counter">(1)</span>
+            <ul class="actions">
+            <li class="actionName">
+            </li>
+            <li>
+            <a href="#" title="Rename this project" rel='rename' class='renameProject'><img src="images/rename.png" alt="Rename this project" /></a>
+            </li>
+            </ul>
             </dt>
+            -->
             <dd class="taskboards">
                 <ul id="taskboards">
                     <!-- render :partial => 'taskboard/taskboard', :collection => project.taskboards.sort_by(&:name) -->
+                    <!--
                     <li>
-                        <a href="/taskboard/show/1" title="Open 'NAVICON' taskboard">NAVICON</a>
-                        <ul class="actions">
-                            <li class="actionName">
-                            </li>
-                            <li>
-                                <a href="/taskboard/clone_taskboard/1" class="cloneTaskboard" rel="clone" title="Create a copy of 'NAVICON'"><img src="images/taskboard_clone.png" alt="Create a copy of 'NAVICON'" /></a>
-                            </li>
-                        </ul>
+                    <a href="/taskboard/show/1" title="Open 'NAVICON' taskboard">NAVICON</a>
+                    <ul class="actions">
+                    <li class="actionName">
                     </li>
+                    <li>
+                    <a href="/taskboard/clone_taskboard/1" class="cloneTaskboard" rel="clone" title="Create a copy of 'NAVICON'"><img src="images/taskboard_clone.png" alt="Create a copy of 'NAVICON'" /></a>
+                    </li>
+                    </ul>
+                    </li>
+                    -->
                     <li class="addTaskboard">
-                        <form action="/taskboard/add_taskboard" method="get">
+                        <form id="createtaskboard" action="/taskboard/add_taskboard" method="get">
                             <fieldset>
                                 <input type="hidden" name="project_id" value="1"/>
                                 <label for="taskboard_name_1">
-                                    Add a new taskboard to this project
+                                    Add a new taskboard
                                 </label>
                                 <div class="inputs">
                                     <input type="text" id="taskboard_name_1" name="name" value="Enter some nice name for your new taskboard"/><input type="submit" value="Add"/>

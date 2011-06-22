@@ -14,14 +14,20 @@
 	<script src="scripts/couchdb-login-jquery.js"></script>
 	
 	
-	<script type="text/javascript">                                         
+	<script type="text/javascript">
+		
+		                                         
 	  $(document).ready(function() {
+	  	//if (window.location.toString().search("cloudant") != -1) {
+		//	$.couch.urlPrefix = "cmadsen/";
+		//}
+		
 	  $("#mylogindiv").couchLogin({
           loggedIn : function(userCtx) {
           //alert("hello "+userCtx.name);
-	  window.location = "taskboard.html";
+	  window.location = "project.html";
 	  
-          }, 
+          },  
           loggedOut : function() {
           //alert("bye bye");
           }
