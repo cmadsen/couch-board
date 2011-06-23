@@ -74,7 +74,7 @@
                     
                     $.couch.db("couch-board").saveDoc(newBoard, {
                         success: function(board){
-                            window.location = "taskboard.html"+board.id;
+                            window.location = "taskboard.html" + board.id;
                         }
                     });
                     return false;
@@ -91,32 +91,18 @@
                                     '<li class="actionName">' +
                                     "</li>" +
                                     "<li>" +
-                                    '<a href="/taskboard/clone_taskboard/1" class="cloneTaskboard" rel="clone" title="Create a copy of NAVICON"><img src="images/taskboard_clone.png" alt="Create a copy of NAVICON" /></a>' +
+                                    '<a href="/taskboard/clone_taskboard/1" class="cloneTaskboard" rel="clone" title="Create a copy of ' +
+                                    doc.value.taskboard.name +
+                                    '"><img src="images/taskboard_clone.png" alt="Create a copy of ' +
+                                    doc.value.taskboard.name +
+                                    '" /></a>' +
                                     "<li>" +
                                     "</ul>" +
                                     "</li>");
                                 });
                             }
                         });
-                        
-                        if (userCtx.name) {
-                            elem.empty();
-                            elem.append(loggedIn(r));
-                            if (opts.loggedIn) {
-                                opts.loggedIn(userCtx)
-                            }
-                        }
-                        else 
-                            if (userCtx.roles.indexOf("_admin") != -1) {
-                                elem.html(templates.adminParty);
-                            }
-                            else {
-                                elem.html(templates.loggedOut);
-                                if (opts.loggedOut) {
-                                    opts.loggedOut()
-                                }
-                            };
-                                }
+                    }
                 });
                 
             });

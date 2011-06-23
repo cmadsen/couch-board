@@ -29,7 +29,8 @@
 
 #headerBar {
     position: relative;
-    background-color:#457F9F;
+//    background-color:#457F9F;
+    background-color:#222222;
     color:#CCCCCC;
     overflow: hidden;
     clear: both;
