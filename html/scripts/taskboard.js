@@ -675,7 +675,7 @@
 		if (TASKBOARD.editor) {
 			var deleteTagCallback = function() {
 				var tag = $(this).parent().find(".tag").text();
-				TASKBOARD.remote.api.removeTag(card.id, tag);
+				//TASKBOARD.remote.api.removeTag(card.id, tag);
 				var index = card.tag_list.indexOf(tag);
 				card.tag_list.splice(index, 1);
 				TASKBOARD.api.updateCard( {
@@ -1658,7 +1658,7 @@
 			TASKBOARD.data.cards.push(newCard);
 			$.couch.db("couch-board").saveDoc(TASKBOARD.doc, {
 				success : function() {
-					alert("Saved ok.");
+					//alert("Saved ok.");
 				}
 			});
 		},
@@ -1678,7 +1678,7 @@
 			TASKBOARD.data.columns.push(newColumn);
 			$.couch.db("couch-board").saveDoc(TASKBOARD.doc, {
 				success : function() {
-					alert("Saved ok.");
+					//alert("Saved ok.");
 				}
 			});
 		},
@@ -1696,7 +1696,7 @@
 			TASKBOARD.data.rows.push(newRow);
 			$.couch.db("couch-board").saveDoc(TASKBOARD.doc, {
 				success : function() {
-					alert("Saved ok.");
+					//alert("Saved ok.");
 				}
 			});
 		},
@@ -1710,8 +1710,8 @@
 					{
 						success : function(doc) {
 							try {
-								alert("openDoc ok. cardId="
-										+ doc.taskboard.name);
+								//alert("openDoc ok. cardId="
+									//	+ doc.taskboard.name);
 
 								$.each(doc.taskboard.cards, function(i, card) {
 									if (card.id === cardId) {
@@ -1784,7 +1784,7 @@
 			});
 			$.couch.db("couch-board").saveDoc(TASKBOARD.doc, {
 				success : function() {
-					alert("Saved ok." + columnId + " " + position);
+					//alert("Saved ok." + columnId + " " + position);
 				}
 			});
 		},
@@ -1794,7 +1794,7 @@
 			TASKBOARD.data.name = name;
 			$.couch.db("couch-board").saveDoc(TASKBOARD.doc, {
 				success : function() {
-					alert("Saved ok." + name);
+					//alert("Saved ok." + name);
 				}
 			});
 
@@ -1810,7 +1810,7 @@
 			});
 			$.couch.db("couch-board").saveDoc(TASKBOARD.doc, {
 				success : function() {
-					alert("Saved ok. colName=" + name);
+					//alert("Saved ok. colName=" + name);
 				}
 			});
 
@@ -1868,7 +1868,12 @@
 			// return false;
 			// }
 			// });
-
+			card = $.grep(TASKBOARD.data.cards, function(
+					card, i) {
+				return card.id === cardId;
+			})[0];
+			console.debug("cardId=%s tag=%s card.tags=%s", cardId, tag, card.tag_list);
+			
 			$.couch.db("couch-board").saveDoc(TASKBOARD.doc);
 
 		},
@@ -1883,7 +1888,7 @@
 
 			$.couch.db("couch-board").saveDoc(TASKBOARD.doc, {
 				success : function() {
-					alert("Saved ok. colName=" + columnId);
+					//alert("Saved ok. colName=" + columnId);
 				}
 			});
 
@@ -1902,7 +1907,7 @@
 			// TASKBOARD.remote.callback('/taskboard/remove_row/', { id: rowId
 			// });
 			TASKBOARD.data.rows = $.grep(TASKBOARD.data.rows, function(row, i) {
-				return row.row_id != rowId;
+				return row.id != rowId;
 			});
 			$.couch.db("couch-board").saveDoc(TASKBOARD.doc);
 
