@@ -1,0 +1,5 @@
+Couch-board is a flexible and easy to use application that helps to manage software development iterations, scrum sprints or simply your everyday tasks. It is a port of Cognified Labs ROR taskboard application to couchdb.
+
+If you are familiar with a task-boards - one of the most commonly used tools in agile project management, you will immediately understand what the couch-board application is all about, as it's simply an on-wall task-board made on-line. You can easily add cards that represent tasks or user stories and arrange them in rows or columns in any way that fits your process. Making any change to a story card is as easy as on a real task-board as you can drag and drop cards to move them around the board, make notes on them, change colour or add labels.
+
+couch-board is a couchdb application that has been released open-source under GNU General Public License and is available for download on GitHub 

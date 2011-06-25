@@ -45,7 +45,7 @@
 	  //$("#taskboard").hide();
 	  $("#mylogindiv").couchLogin({
           loggedIn : function(userCtx) {
-          alert("hello "+userCtx.name);
+          //alert("hello "+userCtx.name);
 	  $("#user").html('<strong class="user_name" title="You are logged in as taskboard user">'+userCtx.name+'</strong> - <a title="Logout from Taskboard app" href="/login/logout">Logout</a>');
 	  $.extend(TASKBOARD, { id : window.location.search.substr(1)});
 	  console.log("TASKBOARD.id=%s", TASKBOARD.id);
