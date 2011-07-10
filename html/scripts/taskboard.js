@@ -522,10 +522,9 @@
 										".cards > li").data('data').hours_left_updated;
 								var updatedToday = false;
 								if (updatedDateString) {
-									var updatedDate = new Date();
-									updatedDate
-											.setISO8601($(this).closest(
-													".cards > li").data('data').hours_left_updated);
+									var updatedDate = new Date(
+											$(this).closest(".cards > li")
+													.data('data').hours_left_updated);
 									var now = new Date();
 									if (now.getYear() == updatedDate.getYear()
 											&& now.getMonth() == updatedDate
@@ -542,7 +541,8 @@
 									TASKBOARD.remote.api.updateCardHours(
 											$(this).parent().parent().data(
 													'data').id, val);
-									$(this).parent().parent().data('data').hours_left = val;
+									// $(this).parent().parent().data('data').hours_left
+									// = val;
 									return val;
 								} else {
 									return this.revert;
@@ -573,6 +573,12 @@
 								$(this).offset().left + 12);
 						ev.preventDefault();
 						ev.stopPropagation();
+					});
+			cardLi.find(".title").editable(
+					function(val) {
+						TASKBOARD.remote.api.renameCard($(this).closest(
+								".cards > li").data('data').id, val);
+						return val;
 					});
 		}
 		return cardLi;
@@ -675,7 +681,7 @@
 		if (TASKBOARD.editor) {
 			var deleteTagCallback = function() {
 				var tag = $(this).parent().find(".tag").text();
-				//TASKBOARD.remote.api.removeTag(card.id, tag);
+				// TASKBOARD.remote.api.removeTag(card.id, tag);
 				var index = card.tag_list.indexOf(tag);
 				card.tag_list.splice(index, 1);
 				TASKBOARD.api.updateCard( {
@@ -816,7 +822,7 @@
 															data);
 												});
 									});
-							card.hours_left = val;
+							// card.hours_left = val;
 							TASKBOARD.api.updateCard( {
 								card : card
 							}); // redraw small card
@@ -945,9 +951,9 @@
 			var othersWidth = select.outerWidth()
 					+ fieldset.find("span").outerWidth()
 					+ fieldset.find(":submit").outerWidth() + 25; // 25px is
-																	// for
-																	// spaces
-																	// etc.
+			// for
+			// spaces
+			// etc.
 			$("#inputAddCards").width(fieldset.width() - othersWidth);
 			fieldset.hide().closest("form").hide().css( {
 				visibility : ""
@@ -1313,12 +1319,16 @@
 			tickSize : [ 1, "day" ]
 		},
 		yaxis : {
-			min : 0
+			min : 0,
+			tickFormatter : function(v, axis) {
+				return v.toFixed(axis.tickDecimals) + "h";
+			}
+
 		},
 		bars : {
 			show : true,
 			barWidth : 24 * 60 * 60 * 1000, // unit is a millisecond and a bar
-											// should have 1 day width
+			// should have 1 day width
 			align : 'center'
 		},
 		grid : {
@@ -1337,12 +1347,15 @@
 		}
 		$.extend(TASKBOARD.burndown.options.xaxis, {
 			min : data[0][0] - 16 * 60 * 60 * 1000, // leave some margin between
-													// bars and axis
+			// bars and axis
 			max : data[data.length - 1][0]
 					+ ((data.length < 10 ? 10 - data.length : 0) * 24 + 16)
 					* 60 * 60 * 1000
 		});
-		$.plot(element, [ data ], TASKBOARD.burndown.options);
+		$.plot(element, [ {
+			label : "Hours",
+			data : data
+		} ], TASKBOARD.burndown.options);
 	};
 
 	TASKBOARD.showBurndown = function(ev) {
@@ -1445,7 +1458,7 @@
 			TASKBOARD.loadFromJSON(data);
 			if (message)
 				$.notify(message);
-		}
+		};
 		TASKBOARD.remote.get.taskboardData(TASKBOARD.id, callback);
 	}
 
@@ -1563,6 +1576,18 @@
 	};
 
 	TASKBOARD.remote = {
+
+		dbName : function() {
+			var regexpr = /\/.*\/([^\/]+)\/_design/;
+			var name = regexpr.exec(window.location)[1];
+			console.debug("db name=%s", name);
+			return name;
+		},
+
+		save : function() {
+			$.couch.db(TASKBOARD.remote.dbName()).saveDoc(TASKBOARD.doc);
+		},
+
 		/*
 		 * Utilities for managing loading taskboard image
 		 * =========================================================
@@ -1610,351 +1635,418 @@
 		get : {
 			taskboardData : function(id, callback) {
 				// "/taskboard/get_taskboard/"+id
-			// console.log("tboardid=%s %s",id, TASKBOARD.id);
-			console
-					.log("taskboardData TASKBOARD.id=%s id=%s", TASKBOARD.id,
-							id);
-			$.getJSON("../../" + TASKBOARD.id, function(data) {
+				// console.log("tboardid=%s %s",id, TASKBOARD.id);
+				console.log("taskboardData TASKBOARD.id=%s id=%s",
+						TASKBOARD.id, id);
+				$.getJSON("../../" + TASKBOARD.id, function(data) {
+					callback(data);
+					TASKBOARD.remote.loading.stop();
+				});
+			},
+			taskboardBurndown : function(id, callback) {
+				data = [];
+				var last_estimate_date = 0;
+				$
+						.each(
+								TASKBOARD.data.cards,
+								function(i, card) {
+									var card_data = [];
+									$
+											.each(
+													card.prev_hours_left,
+													function(i, hoursLeft) {
+														if (hoursLeft.hours_left.hours_left_updated > last_estimate_date) {
+															last_estimate_date = hoursLeft.hours_left.hours_left_updated;
+														}
+													});
+								});
+				$
+						.each(
+								TASKBOARD.data.cards,
+								function(i, card) {
+									var card_data = [];
+									$
+											.each(
+													card.prev_hours_left,
+													function(i, hoursLeft) {
+														card_data
+																.push( [
+																		hoursLeft.hours_left.hours_left_updated,
+																		hoursLeft.hours_left.hours_left ]);
+													});
+									var card_data_sorted = card_data
+											.sort(function(a, b) {
+												return a[0] - b[0];
+											});
+									var fill_data = [];
+									for ( var i = 0; i < card_data_sorted.length; i++) {
+										hours1 = card_data_sorted[i][0];
+										if (i + 1 < card_data_sorted.length) {
+											hours2 = card_data_sorted[i + 1][0];
+											while (hours1
+													+ (1 * 24 * 60 * 60 * 1000) < hours2) {
+												hours1 += (1 * 24 * 60 * 60 * 1000);
+												fill_data
+														.push( [
+																hours1,
+																card_data_sorted[i][1] ]);
+											}
+										}
+									}
+									card_data_sorted = card_data_sorted
+											.concat(fill_data);
+									card_data_sorted = card_data_sorted
+											.sort(function(a, b) {
+												return a[0] - b[0];
+											});
+									if (card_data_sorted.length > 0
+											&& card_data_sorted[card_data_sorted.length - 1][0] < last_estimate_date) {
+										var hours1 = card_data_sorted[card_data_sorted.length - 1][0];
+										var hours_left = card_data_sorted[card_data_sorted.length - 1][1];
+										while (hours1
+												+ (1 * 24 * 60 * 60 * 1000) <= last_estimate_date) {
+											hours1 += (1 * 24 * 60 * 60 * 1000);
+											card_data_sorted.push( [ hours1,
+													hours_left ]);
+										}
+									}
+									console.debug("card = %s", card.name);
+									console.dir(card_data_sorted);
+									$.each(card_data_sorted, function(i,
+											hoursLeft) {
+										hourRecord = $.grep(data, function(
+												timeHour, i) {
+											return timeHour[0] == hoursLeft[0];
+										});
+										if (hourRecord.length == 1) {
+											record = hourRecord[0];
+											record[1] += hoursLeft[1];
+										} else {
+											data.push(hoursLeft);
+										}
+									});
+								});
+
+				var data_sorted = data.sort(function(a, b) {
+					return a[0] - b[0];
+				});
+				console.debug("data_sorted %s %s", data_sorted,
+						data_sorted.length);
+				console.dir(data_sorted);
+				callback(data_sorted.sort(function(a, b) {
+					return a[0] - b[0];
+				}));
+			},
+			cardBurndown : function(id, callback) {
+				var data = [];
+				card = $.grep(TASKBOARD.data.cards, function(card, i) {
+					return card.id === id;
+				})[0];
+				$.each(card.prev_hours_left, function(i, hoursLeft) {
+					data.push( [ hoursLeft.hours_left.hours_left_updated,
+							hoursLeft.hours_left.hours_left ]);
+				});
+				data = data.sort(function(a, b) {
+					return a[0] - b[0];
+				});
+				console.debug("data=%s", data);
+				var fill_data = [];
+				for ( var i = 0; i < data.length; i++) {
+					hours1 = data[i][0];
+					if (i + 1 < data.length) {
+						hours2 = data[i + 1][0];
+						while (hours1 + (1 * 24 * 60 * 60 * 1000) < hours2) {
+							hours1 += (1 * 24 * 60 * 60 * 1000);
+							fill_data.push( [ hours1, data[i][1] ]);
+						}
+					}
+				}
+				console.debug("fill_data=%s", fill_data);
+				data = data.concat(fill_data);
+				console.debug("data=%s", data);
 				callback(data);
-				TASKBOARD.remote.loading.stop();
-			});
+			}
 		},
-		taskboardBurndown : function(id, callback) {
-			TASKBOARD.remote.loading.start();
-			$.getJSON('/taskboard/load_burndown/' + id, function(data) {
-				callback(data);
-				TASKBOARD.remote.loading.stop();
-			});
-		},
-		cardBurndown : function(id, callback) {
-			$.getJSON('/card/load_burndown/' + id, callback);
-		}
-		},
-		// TODO: change to POST requests
 		api : {
 			addCards : function(name, column_id) {
-				// TASKBOARD.remote.callback("/taskboard/add_card",
-			// { name : name, taskboard_id : //TASKBOARD.id, column_id :
-			// column_id },
-			// 'addCards');
-			newCard = {
-				"hours_left_updated" : null,
-				"row_id" : 1,
-				"position" : 1,
-				"name" : name,
-				"taskboard_id" : TASKBOARD.id,
-				"notes" : null,
-				"url" : null,
-				"id" : $.couch.newUUID(),
-				"color" : "#E8F6FC",
-				"column_id" : column_id,
-				"hours_left" : 0,
-				"issue_no" : null,
-				"tag_list" : []
-			};
-			TASKBOARD.api.addCards( [ {
-				card : newCard
-			} ]);
-			TASKBOARD.data.cards.push(newCard);
-			$.couch.db("couch-board").saveDoc(TASKBOARD.doc, {
-				success : function() {
-					//alert("Saved ok.");
-				}
-			});
-		},
-		addColumn : function(name) {
-			// TASKBOARD.remote.callback("/taskboard/add_column",
-			// { name : name, taskboard_id : TASKBOARD.id }, 'addColumn');
-			newColumn = {
-				"position" : 1,
-				"name" : name,
-				"taskboard_id" : TASKBOARD.id,
-				"id" : $.couch.newUUID()
-			};
-			TASKBOARD.api.addColumn(newColumn);
-			$.each(TASKBOARD.data.columns, function(i, column) {
-				column.position += 1;
-			});
-			TASKBOARD.data.columns.push(newColumn);
-			$.couch.db("couch-board").saveDoc(TASKBOARD.doc, {
-				success : function() {
-					//alert("Saved ok.");
-				}
-			});
-		},
-		addRow : function() {
-			// TASKBOARD.remote.callback("/taskboard/add_row",
-			// { taskboard_id : TASKBOARD.id },
-			// 'addRow');
-			newRow = {
-				"position" : 1,
-				"name" : "Brave new row",
-				"taskboard_id" : 1,
-				"id" : $.couch.newUUID()
-			};
-			TASKBOARD.api.addRow(newRow);
-			TASKBOARD.data.rows.push(newRow);
-			$.couch.db("couch-board").saveDoc(TASKBOARD.doc, {
-				success : function() {
-					//alert("Saved ok.");
-				}
-			});
-		},
-		moveCard : function(cardId, columnId, rowId, position) {
-			// TASKBOARD.remote.callback("/taskboard/reorder_cards",
-			// { position : position, column_//id : columnId, id : cardId,
-			// row_id: rowId });
+				newCard = {
+					"hours_left_updated" : null,
+					"row_id" : 1,
+					"position" : 1,
+					"name" : name,
+					"taskboard_id" : TASKBOARD.id,
+					"notes" : null,
+					"url" : null,
+					"id" : $.couch.newUUID(),
+					"color" : "#E8F6FC",
+					"column_id" : column_id,
+					"hours_left" : 0,
+					"issue_no" : null,
+					"tag_list" : [],
+					"prev_hours_left" : []
+				};
+				TASKBOARD.api.addCards( [ {
+					card : newCard
+				} ]);
 
-			$.couch.db("couch-board").openDoc(
-					TASKBOARD.doc._id,
-					{
-						success : function(doc) {
-							try {
-								//alert("openDoc ok. cardId="
-									//	+ doc.taskboard.name);
+				TASKBOARD.data.cards.push(newCard);
+				TASKBOARD.remote.save();
+			},
+			addColumn : function(name) {
+				newColumn = {
+					"position" : 1,
+					"name" : name,
+					"taskboard_id" : TASKBOARD.id,
+					"id" : $.couch.newUUID()
+				};
+				TASKBOARD.api.addColumn(newColumn);
+				$.each(TASKBOARD.data.columns, function(i, column) {
+					column.position += 1;
+				});
+				TASKBOARD.data.columns.push(newColumn);
+				TASKBOARD.remote.save();
+			},
+			addRow : function() {
+				newRow = {
+					"position" : 1,
+					"name" : "Brave new row",
+					"taskboard_id" : 1,
+					"id" : $.couch.newUUID()
+				};
+				TASKBOARD.api.addRow(newRow);
+				TASKBOARD.data.rows.push(newRow);
+				TASKBOARD.remote.save();
+			},
+			moveCard : function(cardId, columnId, rowId, position) {
+				$.couch
+						.db(TASKBOARD.remote.dbName())
+						.openDoc(
+								TASKBOARD.doc._id,
+								{
+									success : function(doc) {
+										try {
+											$
+													.each(
+															doc.taskboard.cards,
+															function(i, card) {
+																if (card.id === cardId) {
+																	console
+																			.log(
+																					"id=%s row=%s col=%s pos=%s",
+																					card.id,
+																					rowId,
+																					columnId,
+																					position);
+																	// TASKBOARD.api.moveCard({card:card});
+																	// alert("colid="+column_id);
+																	card.row_id = rowId;
+																	card.position = position;
+																	card.column_id = columnId;
+																	return false;
+																}
+															});
 
-								$.each(doc.taskboard.cards, function(i, card) {
-									if (card.id === cardId) {
-										console.log(
-												"id=%s row=%s col=%s pos=%s",
-												card.id, rowId, columnId,
-												position);
-										// TASKBOARD.api.moveCard({card:card});
-										// alert("colid="+column_id);
-										card.row_id = rowId;
-										card.position = position;
-										card.column_id = columnId;
+											$.couch
+													.db(
+															TASKBOARD.remote
+																	.dbName())
+													.saveDoc(
+															doc,
+															{
+																success : function() {
+																	TASKBOARD.data = doc.taskboard;
+																	TASKBOARD.doc = doc;
+																	console
+																			.log("move card done");
+																}
+															});
+										} catch (err) {
+											console.log("%s", err);
+										}
+									}
+								});
+			},
+			moveColumn : function(columnId, position) {
+				console.debug("moveColumns id=%s", columnId);
+				col = $.grep(TASKBOARD.data.columns, function(column, i) {
+					return column.id === columnId;
+				})[0];
+				oldPosition = col.position;
+				$.each(TASKBOARD.data.columns, function(i, column) {
+					if (column.id === columnId) {
+						console.debug("Moving %s from %s to %s", column.name,
+								column.position, position);
+						column.position = position;
+						// return false;
+					} else if (column.position >= position
+							&& column.position < oldPosition) {
+						console.debug("Moving[>] %s from %s to %s",
+								column.name, column.position,
+								column.position + 1);
+						column.position++;
+					} else if (column.position <= position
+							&& column.position > oldPosition) {
+						console.debug("Moving[<] %s from %s to %s",
+								column.name, column.position,
+								column.position - 1);
+						column.position--;
+					}
+				});
+				TASKBOARD.remote.save();
+			},
+			renameTaskboard : function(name) {
+				TASKBOARD.data.name = name;
+				TASKBOARD.remote.save();
+			},
+			renameColumn : function(columnId, name) {
+				$.each(TASKBOARD.data.columns, function(i, column) {
+					if (column.id === columnId) {
+						column.name = name;
+						return false;
+					}
+				});
+				TASKBOARD.remote.save();
+			},
+			renameCard : function(cardId, name) {
+				$.each(TASKBOARD.data.cards, function(i, card) {
+					if (card.id === cardId) {
+						card.name = name;
+						return false;
+					}
+				});
+				TASKBOARD.remote.save();
+			},
+			updateCardNotes : function(cardId, notes) {
+				$.each(TASKBOARD.data.cards, function(i, card) {
+					if (card.id === cardId) {
+						card.notes = notes;
+						return false;
+					}
+				});
+				TASKBOARD.remote.save();
+			},
+			addTags : function(cardId, tags) {
+				TASKBOARD.remote.save();
+			},
+			removeTag : function(cardId, tag) {
+				card = $.grep(TASKBOARD.data.cards, function(card, i) {
+					return card.id === cardId;
+				})[0];
+				console.debug("cardId=%s tag=%s card.tags=%s", cardId, tag,
+						card.tag_list);
+				TASKBOARD.remote.save();
+			},
+			deleteColumn : function(columnId) {
+				TASKBOARD.data.columns = $.grep(TASKBOARD.data.columns,
+						function(column, i) {
+							return column.id != columnId;
+						});
+				TASKBOARD.remote.save();
+			},
+			cleanColumn : function(columnId) {
+				TASKBOARD.data.cards = $.grep(TASKBOARD.data.cards, function(
+						card, i) {
+					return card.column_id != columnId;
+				});
+				TASKBOARD.remote.save();
+			},
+			deleteRow : function(rowId) {
+				TASKBOARD.data.rows = $.grep(TASKBOARD.data.rows, function(row,
+						i) {
+					return row.id != rowId;
+				});
+				TASKBOARD.remote.save();
+			},
+			cleanRow : function(rowId) {
+				TASKBOARD.data.cards = $.grep(TASKBOARD.data.cards, function(
+						card, i) {
+					return card.row_id != rowId;
+				});
+				TASKBOARD.remote.save();
+			},
+			updateCardHours : function(cardId, hours, updatedAt, callback) {
+				card = $.grep(TASKBOARD.data.cards, function(card, i) {
+					return card.id === cardId;
+				})[0];
+
+				var dayInMsecs = 1 * 24 * 60 * 60 * 1000;
+				var updateDate = new Date();
+				updateDate.setHours(0);
+				updateDate.setMinutes(0);
+				updateDate.setSeconds(0);
+				updateDate.setMilliseconds(0);
+
+				if (updatedAt === 'yesterday') {
+					updateDate = new Date((updateDate.getTime() - dayInMsecs));
+				} else if (updatedAt === 'tomorrow') {
+					updateDate = new Date((updateDate.getTime() + dayInMsecs));
+				}
+
+				var hoursPrevRecorded = false;
+				$
+						.each(
+								card.prev_hours_left,
+								function(i, prevHours) {
+									console
+											.debug(
+													"%s == %s",
+													prevHours.hours_left.hours_left_updated,
+													updateDate.getTime());
+									if (prevHours.hours_left.hours_left_updated == updateDate
+											.getTime()) {
+										hoursPrevRecorded = true;
+										console
+												.debug(
+														"%s already have hours recorded %s -> %s",
+														new Date(
+																prevHours.hours_left.hours_left_updated),
+														prevHours.hours_left.hours_left,
+														hours);
+										prevHours.hours_left.hours_left = new Number(
+												hours);
 										return false;
 									}
 								});
 
-								$.couch.db("couch-board").saveDoc(doc, {
-									success : function() {
-										TASKBOARD.data = doc.taskboard;
-										TASKBOARD.doc = doc;
-										console.log("move card done");
-									}
-								});
-							} catch (err) {
-								console.log("%s", err);
-							}
+				if (!hoursPrevRecorded) {
+					console.debug("%s have no hours recorded 0 -> %s",
+							card.hours_left_updated,
+							card.hours_left.hours_left, hours);
+					card.prev_hours_left.push( {
+						"hours_left" : {
+							"hours_left" : new Number(hours),
+							"hours_left_updated" : updateDate.getTime()
 						}
 					});
-
-			// $.each(doc.taskboard.cards, function(i, card){
-			// if (card.id === cardId) {
-			// //TASKBOARD.api.moveCard({card:card});
-			// card.row_id = rowId;
-			// card.position = position;
-			// card.column_id = columnId;
-			// return false;
-			// }
-			// });
-
-			// $.couch.db("couch-board").saveDoc(
-			// doc,
-			// {success: function() { alert("Saved ok. cardId="+doc); }}
-			// );
-		},
-		moveColumn : function(columnId, position) {
-			// TASKBOARD.remote.callback("/taskboard/reorder_columns",
-			// { position : position, id : columnId });
-			console.debug("moveColumns id=%s", columnId);
-			col = $.grep(TASKBOARD.data.columns, function(column, i) {
-				return column.id === columnId;
-			})[0];
-			oldPosition = col.position;
-			$.each(TASKBOARD.data.columns, function(i, column) {
-				if (column.id === columnId) {
-					console.debug("Moving %s from %s to %s", column.name,
-							column.position, position);
-					column.position = position;
-					// return false;
-				} else if (column.position >= position
-						&& column.position < oldPosition) {
-					console.debug("Moving[>] %s from %s to %s", column.name,
-							column.position, column.position + 1);
-					column.position++;
-				} else if (column.position <= position
-						&& column.position > oldPosition) {
-					console.debug("Moving[<] %s from %s to %s", column.name,
-							column.position, column.position - 1);
-					column.position--;
 				}
-			});
-			$.couch.db("couch-board").saveDoc(TASKBOARD.doc, {
-				success : function() {
-					//alert("Saved ok." + columnId + " " + position);
-				}
-			});
-		},
-		renameTaskboard : function(name) {
-			// TASKBOARD.remote.callback('/taskboard/rename_taskboard', { id :
-			// TASKBOARD.id, name : name });
-			TASKBOARD.data.name = name;
-			$.couch.db("couch-board").saveDoc(TASKBOARD.doc, {
-				success : function() {
-					//alert("Saved ok." + name);
-				}
-			});
-
-		},
-		renameColumn : function(columnId, name) {
-			// TASKBOARD.remote.callback('/taskboard/rename_column', { id :
-			// columnId, name : name });
-			$.each(TASKBOARD.data.columns, function(i, column) {
-				if (column.id === columnId) {
-					column.name = name;
-					return false;
-				}
-			});
-			$.couch.db("couch-board").saveDoc(TASKBOARD.doc, {
-				success : function() {
-					//alert("Saved ok. colName=" + name);
-				}
-			});
-
-		},
-		renameCard : function(cardId, name) {
-			// TASKBOARD.remote.callback('/card/update_name', { id : cardId,
-			// name : name });
-			$.each(TASKBOARD.data.cards, function(i, card) {
-				if (card.id === cardId) {
-					card.name = name;
-					return false;
-				}
-			});
-
-			$.couch.db("couch-board").saveDoc(TASKBOARD.doc);
-
-		},
-		updateCardNotes : function(cardId, notes) {
-			// TASKBOARD.remote.callback('/card/update_notes', { id : cardId,
-			// notes : notes });
-
-			$.each(TASKBOARD.data.cards, function(i, card) {
-				if (card.id === cardId) {
-					card.notes = notes;
-					return false;
-				}
-			});
-
-			$.couch.db("couch-board").saveDoc(TASKBOARD.doc);
-
-		},
-		addTags : function(cardId, tags) {
-			// TASKBOARD.remote.callback('/card/add_tag', { id : cardId, tags :
-			// tags });
-			// $.each(TASKBOARD.data.cards, function(i, card){
-			// if (card.id === cardId) {
-			// console.log("tags=(%s) list=%s", tags,card.tag_list);
-			// card.tag_list.push(tags);
-			// console.log("tags=(%s) list=%s", tags,card.tag_list);
-			// return false;
-			// }
-			// });
-
-			$.couch.db("couch-board").saveDoc(TASKBOARD.doc);
-
-		},
-		removeTag : function(cardId, tag) {
-			// TASKBOARD.remote.callback('/card/remove_tag', { id : cardId, tag
-			// : tag });
-			// $.each(TASKBOARD.data.cards, function(i, card){
-			// if (card.id === cardId) {
-			// console.log("%s %s", tag, card.tag_list);
-			// card.tag_list.splice(tag);
-			// console.log("%s %s", tag, card.tag_list);
-			// return false;
-			// }
-			// });
-			card = $.grep(TASKBOARD.data.cards, function(
-					card, i) {
-				return card.id === cardId;
-			})[0];
-			console.debug("cardId=%s tag=%s card.tags=%s", cardId, tag, card.tag_list);
-			
-			$.couch.db("couch-board").saveDoc(TASKBOARD.doc);
-
-		},
-		deleteColumn : function(columnId) {
-			// TASKBOARD.remote.callback('/taskboard/remove_column/', { id:
-			// columnId });
-
-			TASKBOARD.data.columns = $.grep(TASKBOARD.data.columns, function(
-					column, i) {
-				return column.id != columnId;
-			});
-
-			$.couch.db("couch-board").saveDoc(TASKBOARD.doc, {
-				success : function() {
-					//alert("Saved ok. colName=" + columnId);
-				}
-			});
-
-		},
-		cleanColumn : function(columnId) {
-			// TASKBOARD.remote.callback('/taskboard/clean_column/', { id:
-			// columnId });
-
-			TASKBOARD.data.cards = $.grep(TASKBOARD.data.cards, function(card,
-					i) {
-				return card.column_id != columnId;
-			});
-			$.couch.db("couch-board").saveDoc(TASKBOARD.doc);
-		},
-		deleteRow : function(rowId) {
-			// TASKBOARD.remote.callback('/taskboard/remove_row/', { id: rowId
-			// });
-			TASKBOARD.data.rows = $.grep(TASKBOARD.data.rows, function(row, i) {
-				return row.id != rowId;
-			});
-			$.couch.db("couch-board").saveDoc(TASKBOARD.doc);
-
-		},
-		cleanRow : function(rowId) {
-			// TASKBOARD.remote.callback('/taskboard/clean_row/', { id: rowId
-			// });
-			TASKBOARD.data.cards = $.grep(TASKBOARD.data.cards, function(card,
-					i) {
-				return card.row_id != rowId;
-			});
-			$.couch.db("couch-board").saveDoc(TASKBOARD.doc);
-
-		},
-		updateCardHours : function(cardId, hours, updatedAt, callback) {
-			// TASKBOARD.remote.callback('/card/update_hours/', { id: cardId,
-			// hours_left: hours, updated_at: updatedAt }, callback);
-			card = $.grep(TASKBOARD.data.cards, function(card, i) {
-				return card.id === cardId;
-			})[0];
-			card.hours_left = hours;
-			card.hours_left_updated = updatedAt;
-			$.couch.db("couch-board").saveDoc(TASKBOARD.doc);
-
-		},
-		deleteCard : function(cardId) {
-			// TASKBOARD.remote.callback('/taskboard/remove_card/', { id: cardId
-			// });
-			TASKBOARD.data.cards = $.grep(TASKBOARD.data.cards, function(card,
-					i) {
-				return card.id != cardId;
-			});
-			$.couch.db("couch-board").saveDoc(TASKBOARD.doc);
-		},
-		changeCardColor : function(cardId, color) {
-			// TASKBOARD.remote.callback('/card/change_color/', { id: cardId,
-			// color : color });
-			card = $.grep(TASKBOARD.data.cards, function(card, i) {
-				console.log("%s == %s", card.id, cardId);
-				return card.id == cardId;
-			})[0];
-			card.color = color;
-			TASKBOARD.api.changeCardColor( {
-				card : card
-			});
-			$.couch.db("couch-board").saveDoc(TASKBOARD.doc);
-		}
+				console.debug("dir");
+				console.dir(card.prev_hours_left.sort(function(a, b) {
+					return a.hours_left.hours_left_updated
+							- b.hours_left.hours_left_updated;
+				}));
+				card.hours_left = new Number(hours);
+				card.hours_left_updated = updateDate.getTime();
+				console.debug("dir");
+				console.dir(card.prev_hours_left);
+				TASKBOARD.remote.save();
+			},
+			deleteCard : function(cardId) {
+				TASKBOARD.data.cards = $.grep(TASKBOARD.data.cards, function(
+						card, i) {
+					return card.id != cardId;
+				});
+				TASKBOARD.remote.save();
+			},
+			changeCardColor : function(cardId, color) {
+				card = $.grep(TASKBOARD.data.cards, function(card, i) {
+					return card.id == cardId;
+				})[0];
+				card.color = color;
+				TASKBOARD.api.changeCardColor( {
+					card : card
+				});
+				TASKBOARD.remote.save();
+			}
 		}
 	};
 
@@ -1991,7 +2083,7 @@
 			.ready(
 					function() {
 						$('body').append('<ol id="notifications"></ol>');
-						db = $.couch.db("couch-board");
+						db = $.couch.db(TASKBOARD.remote.dbName());
 						var changes = db.changes();
 						changes
 								.onChange(function(data) {
@@ -1999,17 +2091,12 @@
 											.each(
 													data.results,
 													function(i, change) {
-														// console.log("change.id=%s
-														// %s %s", change.id,
-														// TASKBOARD.doc._id,
-														// TASKBOARD.doc._rev);
 														if (change.id === TASKBOARD.doc._id
 																&& change.changes[0].rev != TASKBOARD.doc._rev) {
 															TASKBOARD.refresh();
 														}
 													});
 								});
-						// console.log("subcribed to changes");
 					});
 
 	$.notify = function(msg, options) {

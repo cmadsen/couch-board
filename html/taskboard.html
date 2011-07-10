@@ -1,112 +1,140 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
-    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
-<head>
-	<title>Taskboard</title>	
-
-<!--
-	<%= stylesheet_link_tag 'taskboard' %>
-	<%= stylesheet_link_tag 'print', :media => "print" %>
--->
-	<!-- TODO: pack jQuery and plugins for production -->
-<!--
-	<%= javascript_include_tag 'lib/jquery', 'lib/jquery-ui.min', 'lib/jquery.jeditable', 'lib/jquery.colorpicker', 'lib/jquery.flot', 'lib/jquery.cookie', 'lib/showdown' %>
-	<%= javascript_include_tag 'lib/juggernaut/swfobject', 'lib/juggernaut/juggernaut', 'lib/juggernaut/jquerynaut', 'lib/juggernaut/json' %>
-	<%= javascript_include_tag 'utils', 'taskboard' %>
-
-	<script>$.extend(TASKBOARD, { id : '#{@taskboard_id}'});</script>
-	<script>$.extend(TASKBOARD, { editor : #{session[:editor]}});</script>
--->
-	<!-- script>$.extend(TASKBOARD, { authenticity_token : #{form_authenticity_token.inspect} }); if protect_against_forgery?</script -->
-	<!--%= juggernaut :channels => [@taskboard_id], :debug => false %-->
-	<!--[if IE]>
-	<%= javascript_include_tag 'scripts/excanvas.compiled' %>
-	<![endif]-->
-
-	<link rel="stylesheet" type="text/css" href="styles/taskboard.css" media="screen" />
-	<link rel="stylesheet" type="text/css" href="styles/print.css" media="print" />
-	<script src="scripts/jquery-1.4.2.min.js"></script>
-	<script src="scripts/jquery-ui.min.js"></script>
-	<script src="scripts/jquery.jeditable.js"></script>
-	<script src="scripts/jquery.colorpicker.js"></script>
-	<script src="scripts/jquery.flot.js"></script>
-	<script src="scripts/jquery.cookie.js"></script>
-	<script src="scripts/showdown.js"></script>
-	<script src="scripts/utils.js"></script>
-	<script src="scripts/taskboard.js"></script>
-	<script src="scripts/footer.js"></script>
-	<script src="scripts/jquery.couch.js"></script>
-	<script src="scripts/couchdb-login-jquery.js"></script>
-
-	<script type="text/javascript">                                         
-	  
-	  
-	  $(document).ready(function() {
-	  //$("#taskboard").hide();
-	  $("#mylogindiv").couchLogin({
-          loggedIn : function(userCtx) {
-          //alert("hello "+userCtx.name);
-	  $("#user").html('<strong class="user_name" title="You are logged in as taskboard user">'+userCtx.name+'</strong> - <a title="Logout from Taskboard app" href="/login/logout">Logout</a>');
-	  $.extend(TASKBOARD, { id : window.location.search.substr(1)});
-	  console.log("TASKBOARD.id=%s", TASKBOARD.id);
-	  $.extend(TASKBOARD, { editor : userCtx.name});
-	  $("#mylogindiv").hide();
-	  $("#taskboard").show();
-          }, 
-          loggedOut : function() {
-	  window.location = "login.html";
-          //alert("bye bye");
-          }
-	  });
-	  });  
-	</script>  
-
-	
-
-</head>
-<body>
-	<div id="header">
-	<div id="headerBar">
-	  <h1><a title="Back to taskboards list" rel="home" href="project.html">Taskboard</a></h1>
-		<ul id="actions">
-			<!--% if session[:editor] -% -->
-			<li><a class="actionAddCards" href="#" title="Add some cards to this taskboard">Add cards</a></li>
-			<li><a class="actionAddColumn" href="#" title="Add a column to this taskboard">Add column</a></li>
-			<li><a class="actionAddRow" href="#" title="Add a row to this taskboard">Add row</a></li>
-			<!--% end -%-->
-			<li><a class="actionShowTagSearch" href="#" title="Filter cards by tags">Tags</a></li>
-			<li><a class="actionToggleAll" href="#" title="Zoom cards view">Zoom</a></li>
-			<li><a class="actionShowBurndown" href="#" title="Show burndown chart for this taskboard">Burndown</a></li>
-			<li id="user" class="user"></li>
-		</ul>
-	</div>
-		<form id="formActions" action="#">
-			<fieldset id="fieldsetAddCards">
-				<a class='actionHideForm' href='#' title='Hide'><img src='images/hide_off.png' alt='Hide'/></a>
-				<label for="inputAddCards">Type a card title, JIRA issue or paste a filter URL:</label>
-				<input id="inputAddCards" type="text" />
-				<input type="submit" value="Add" />
-				<span>to</span> <select id="selectColumn"><option>Test</option></select>
-			</fieldset>
-			<fieldset id="fieldsetAddColumn">
-				<a class='actionHideForm' href='#' title='Hide'><img src='images/hide_off.png' alt='Hide'/></a>
-				<label for="inputAddColumn">Type a column name:</label>
-				<input id="inputAddColumn" type="text" />
-				<input type="submit" value="Add" />
-			</fieldset>
-			<fieldset id="fieldsetTags">
-				<a class='actionHideForm' href='#' title='Hide'><img src='images/hide_off.png' alt='Hide'/></a>
-				<label>Filter cards by tags:</label>
-				<ul id="filterTags"></ul>
-			</fieldset>
-		</form>
-	</div>
-
-	<ol id="taskboard">
-		<li><!-- just to make it valid --></li>
-	</ol>
-
-	<div id="mylogindiv"/>
-
-</body>
+    <head>
+        <title>Taskboard</title>
+        <!--
+        <%= stylesheet_link_tag 'taskboard' %>
+        <%= stylesheet_link_tag 'print', :media => "print" %>
+        --><!-- TODO: pack jQuery and plugins for production --><!--
+        <%= javascript_include_tag 'lib/jquery', 'lib/jquery-ui.min', 'lib/jquery.jeditable', 'lib/jquery.colorpicker', 'lib/jquery.flot', 'lib/jquery.cookie', 'lib/showdown' %>
+        <%= javascript_include_tag 'lib/juggernaut/swfobject', 'lib/juggernaut/juggernaut', 'lib/juggernaut/jquerynaut', 'lib/juggernaut/json' %>
+        <%= javascript_include_tag 'utils', 'taskboard' %>
+        <script>$.extend(TASKBOARD, { id : '#{@taskboard_id}'});</script>
+        <script>$.extend(TASKBOARD, { editor : #{session[:editor]}});</script>
+        --><!-- script>$.extend(TASKBOARD, { authenticity_token : #{form_authenticity_token.inspect} }); if protect_against_forgery?</script --><!--%= juggernaut :channels => [@taskboard_id], :debug => false %-->
+        <!--[if IE]>
+            <%= javascript_include_tag 'scripts/excanvas.compiled' %>
+        <![endif]-->
+        <link rel="stylesheet" type="text/css" href="styles/taskboard.css" media="screen" />
+        <link rel="stylesheet" type="text/css" href="styles/print.css" media="print" />
+        <script src="scripts/jquery-1.4.2.min.js">
+        </script>
+        <script src="scripts/jquery-ui.min.js">
+        </script>
+        <script src="scripts/jquery.jeditable.js">
+        </script>
+        <script src="scripts/jquery.colorpicker.js">
+        </script>
+        <script src="scripts/jquery.flot.js">
+        </script>
+        <script src="scripts/jquery.cookie.js">
+        </script>
+        <script src="scripts/showdown.js">
+        </script>
+        <script src="scripts/utils.js">
+        </script>
+        <script src="scripts/taskboard.js">
+        </script>
+        <script src="scripts/footer.js">
+        </script>
+        <script src="scripts/jquery.couch.js">
+        </script>
+        <script src="scripts/couchdb-login-jquery.js">
+        </script>
+        <script type="text/javascript">
+            $(document).ready(function(){
+                //$("#taskboard").hide();
+                $("#mylogindiv").couchLogin({
+                    loggedIn: function(userCtx){
+                        //alert("hello "+userCtx.name);
+                        $("#user").html('<strong class="user_name" title="You are logged in as taskboard user">' + userCtx.name + '</strong> - <a id="logout" title="Logout from Taskboard app" href="#">Logout</a>');
+                        $("#logout").bind("click", function(){
+                            $.couch.logout({
+                                success: function(resp){
+                                    window.location = "login.html";
+                                }
+                            });
+                        });
+                        $.extend(TASKBOARD, {
+                            id: window.location.search.substr(1)
+                        });
+                        console.log("TASKBOARD.id=%s", TASKBOARD.id);
+                        $.extend(TASKBOARD, {
+                            editor: userCtx.name
+                        });
+                        $("#mylogindiv").hide();
+                        $("#taskboard").show();
+                    },
+                    loggedOut: function(){
+                        window.location = "login.html";
+                        //alert("bye bye");
+                    }
+                });
+            });
+        </script>
+    </head>
+    <body>
+        <div id="header">
+            <div id="headerBar">
+                <h1><a title="Back to taskboards list" rel="home" href="project.html">Taskboard</a></h1>
+                <ul id="actions">
+                    <!--% if session[:editor] -% -->
+                    <li>
+                        <a class="actionAddCards" href="#" title="Add some cards to this taskboard">Add cards</a>
+                    </li>
+                    <li>
+                        <a class="actionAddColumn" href="#" title="Add a column to this taskboard">Add column</a>
+                    </li>
+                    <li>
+                        <a class="actionAddRow" href="#" title="Add a row to this taskboard">Add row</a>
+                    </li>
+                    <!--% end -%-->
+                    <li>
+                        <a class="actionShowTagSearch" href="#" title="Filter cards by tags">Tags</a>
+                    </li>
+                    <li>
+                        <a class="actionToggleAll" href="#" title="Zoom cards view">Zoom</a>
+                    </li>
+                    <li>
+                        <a class="actionShowBurndown" href="#" title="Show burndown chart for this taskboard">Burndown</a>
+                    </li>
+                    <li id="user" class="user">
+                    </li>
+                </ul>
+            </div>
+            <form id="formActions" action="#">
+                <fieldset id="fieldsetAddCards">
+                    <a class='actionHideForm' href='#' title='Hide'><img src='images/hide_off.png' alt='Hide'/></a>
+                    <label for="inputAddCards">
+                        Type a card title, JIRA issue or paste a filter URL:
+                    </label>
+                    <input id="inputAddCards" type="text" /><input type="submit" value="Add" /><span>to</span>
+                    <select id="selectColumn">
+                        <option>Test</option>
+                    </select>
+                </fieldset>
+                <fieldset id="fieldsetAddColumn">
+                    <a class='actionHideForm' href='#' title='Hide'><img src='images/hide_off.png' alt='Hide'/></a>
+                    <label for="inputAddColumn">
+                        Type a column name:
+                    </label>
+                    <input id="inputAddColumn" type="text" /><input type="submit" value="Add" />
+                </fieldset>
+                <fieldset id="fieldsetTags">
+                    <a class='actionHideForm' href='#' title='Hide'><img src='images/hide_off.png' alt='Hide'/></a>
+                    <label>
+                        Filter cards by tags:
+                    </label>
+                    <ul id="filterTags">
+                    </ul>
+                </fieldset>
+            </form>
+        </div>
+        <ol id="taskboard">
+            <li>
+                <!-- just to make it valid -->
+            </li>
+        </ol>
+        <div id="mylogindiv"/>
+    </body>
 </html>
